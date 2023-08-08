@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    start_env: "{{ start_service | default('false') }}"
+  tasks:
+    - add_host:
+        name: "{{ item }}"
+        group: reverse
+      with_items: "{{ groups['all'] | reverse | list }}"
+      when: start_env == "true"
+
+- name: Execute Shell Command on Remote Host
+  hosts: "{{ 'reverse' if start_env == 'true' else 'all' }}"
+  vars:
+    start_env: "{{ start_service | default('false') }}"  
+  gather_facts: false
+  serial: 1
+  tasks:
+    - name: Run Shell Command
+      shell: hostname
+      register: command_output
+
+    - name: Display Command Output
+      debug:
+        var: command_output.stdout
